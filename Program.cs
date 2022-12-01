@@ -1,88 +1,68 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 
 namespace ContKor
 {
-    public interface IMultiLock
+    public interface IStack<T>
     {
-        public IDisposable AcquireLock(params string[] keys);
-    }
-
-    public class Disposable : IDisposable
-    {
-        public readonly Action _onDispose;
-        public Disposable(Action onDispose) => _onDispose = onDispose;
-        public void Dispose() => _onDispose();
+        void Push(T item);
+        bool TryPop(out T item);
+        int Count { get; }
     }
     
-    public class MultiLock : IMultiLock
+    public class MyStack<T> : IStack<T>
     {
-        private readonly Dictionary<string, object> lockObjs;
+        private Node _head;
 
-        public MultiLock(params string[] keys)
-        {
-            lockObjs = new Dictionary<string, object>();
-            foreach (var key in keys)
+        public int Count 
+        { 
+            get
             {
-                lockObjs.Add(key, new object());
-            }
+                if (_head == null) return 0;
+                return _head.Quantity; 
+            } 
         }
 
-        public IDisposable AcquireLock(params string[] keys)
+        public void Push(T item)
         {
-            Array.Sort(keys);
-            var blocks = new Stack<object>(); // объекты, на которые есть блокировка
-            try
-            {
-                // для каждого ключа берем его объект блокировки
-                var lockObjects = keys.Select(k => lockObjs[k]);
-                foreach (var lockObj in lockObjects)
-                {
-                    // захватываем на него блокировку
-                    var lockTaken = false;
-                    try
-                    {
-                        Monitor.TryEnter(lockObj, ref lockTaken);
-                    }
-                    finally
-                    {
-                        if(lockTaken)
-                            blocks.Push(lockObj);
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // вылетело исключение -- освобождаем те блокировки, которые успели захватить до
-                Unlock(blocks);
-                // перевыброс исключения
-                throw;
-            }
-
-            return new Disposable(() => Unlock(blocks));
-        }
-
-        private void Unlock(Stack<object> blocks)
-        {
+            var spin = new SpinWait();
             while (true)
             {
-                if(blocks.Count == 0) break;
-                var block = blocks.Pop();
-                Monitor.Exit(block);
+                var previousHead = _head;
+                var quantity = 1;
+                if (previousHead != null) quantity += previousHead.Quantity;
+                var node = new Node(item, previousHead, quantity);
+                if (Interlocked.CompareExchange(ref _head, node, previousHead) == previousHead) return;
+                spin.SpinOnce();
             }
         }
-    }
 
-    public static class Program
-    {
-        public static void Main()
+        public bool TryPop(out T item)
         {
-            var multiLock = new MultiLock("l", "m", "a", "o");
-            using (multiLock.AcquireLock("a", "l"))
+            item = default;
+            var spin = new SpinWait();
+            while (true)
             {
-                Console.WriteLine(".");
+                if (_head == null) return false;
+                var oldHead = _head;
+                if (Interlocked.CompareExchange(ref _head, oldHead.Next, oldHead) == oldHead)
+                {
+                    item = oldHead.Value;
+                    return true;
+                }
+                spin.SpinOnce();
+            }
+        }
+
+        private class Node
+        {
+            public readonly T Value;
+            public readonly Node Next;
+            public readonly int Quantity;
+            public Node(T value, Node next, int quantity)
+            {
+                Value = value;
+                Next = next;
+                Quantity = quantity;
             }
         }
     }
