@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "eQxrXG/5XCq1w638fhPiTQurs0JWpxZ+xZXP6yNOUhvL8saAb/Se8wPcyELGy8NnW/oDu2q1ix8Y9DRe0pBu4A==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\administrator\\Desktop\\Проекты C sharp\\ContKor\\ContKor\\ContKor.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\administrator\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\3.1.10\\microsoft.aspnetcore.app.ref.3.1.10.nupkg.sha512",
+    "C:\\Users\\administrator\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\3.1.22\\microsoft.netcore.app.host.win-x64.3.1.22.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,14 @@
+C:\Users\administrator\Desktop\Проекты C sharp\ContKor\ContKor\bin\Debug\netcoreapp3.1\ContKor.exe
+C:\Users\administrator\Desktop\Проекты C sharp\ContKor\ContKor\bin\Debug\netcoreapp3.1\ContKor.deps.json
+C:\Users\administrator\Desktop\Проекты C sharp\ContKor\ContKor\bin\Debug\netcoreapp3.1\ContKor.runtimeconfig.json
+C:\Users\administrator\Desktop\Проекты C sharp\ContKor\ContKor\bin\Debug\netcoreapp3.1\ContKor.runtimeconfig.dev.json
+C:\Users\administrator\Desktop\Проекты C sharp\ContKor\ContKor\bin\Debug\netcoreapp3.1\ContKor.dll
+C:\Users\administrator\Desktop\Проекты C sharp\ContKor\ContKor\bin\Debug\netcoreapp3.1\ContKor.pdb
+C:\Users\administrator\Desktop\Проекты C sharp\ContKor\ContKor\obj\Debug\netcoreapp3.1\ContKor.csproj.AssemblyReference.cache
+C:\Users\administrator\Desktop\Проекты C sharp\ContKor\ContKor\obj\Debug\netcoreapp3.1\ContKor.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\administrator\Desktop\Проекты C sharp\ContKor\ContKor\obj\Debug\netcoreapp3.1\ContKor.AssemblyInfoInputs.cache
+C:\Users\administrator\Desktop\Проекты C sharp\ContKor\ContKor\obj\Debug\netcoreapp3.1\ContKor.AssemblyInfo.cs
+C:\Users\administrator\Desktop\Проекты C sharp\ContKor\ContKor\obj\Debug\netcoreapp3.1\ContKor.csproj.CoreCompileInputs.cache
+C:\Users\administrator\Desktop\Проекты C sharp\ContKor\ContKor\obj\Debug\netcoreapp3.1\ContKor.dll
+C:\Users\administrator\Desktop\Проекты C sharp\ContKor\ContKor\obj\Debug\netcoreapp3.1\ContKor.pdb
+C:\Users\administrator\Desktop\Проекты C sharp\ContKor\ContKor\obj\Debug\netcoreapp3.1\ContKor.genruntimeconfig.cache
