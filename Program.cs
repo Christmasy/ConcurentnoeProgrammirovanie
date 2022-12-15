@@ -1,69 +1,50 @@
-﻿using System.Threading;
+﻿using System;
+using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace ContKor
 {
-    public interface IStack<T>
+    public class TplScanner : IPScanner
     {
-        void Push(T item);
-        bool TryPop(out T item);
-        int Count { get; }
-    }
-    
-    public class MyStack<T> : IStack<T>
-    {
-        private Node _head;
+        public Task Scan(IPAddress[] ipAddresses, int[] ports) =>
+            Task.WhenAll(ipAddresses
+                .Select(ipAddress => PingAddress(ipAddress)
+                    .ContinueWith(task =>
+                    {
+                        if (task.Result != IPStatus.Success) return;
+                        Task.WhenAll(ports.Select(port => CheckPort(ipAddress, port)))
+                            .ContinueWith(_ => { }, TaskContinuationOptions.AttachedToParent);
+                    }))
+            );
 
-        public int Count 
-        { 
-            get
-            {
-                if (_head == null) return 0;
-                return _head.Quantity; 
-            } 
-        }
-
-        public void Push(T item)
+        private static Task<IPStatus> PingAddress(IPAddress ipAddress, int timeout = 3000)
         {
-            var spin = new SpinWait();
-            while (true)
-            {
-                var previousHead = _head;
-                var quantity = 1;
-                if (previousHead != null) quantity += previousHead.Quantity;
-                var node = new Node(item, previousHead, quantity);
-                if (Interlocked.CompareExchange(ref _head, node, previousHead) == previousHead) return;
-                spin.SpinOnce();
-            }
-        }
-
-        public bool TryPop(out T item)
-        {
-            item = default;
-            var spin = new SpinWait();
-            while (true)
-            {
-                if (_head == null) return false;
-                var oldHead = _head;
-                if (Interlocked.CompareExchange(ref _head, oldHead.Next, oldHead) == oldHead)
+            var ping = new Ping();
+            Console.WriteLine($"Pinging {ipAddress}");
+            return ping
+                .SendPingAsync(ipAddress, timeout)
+                .ContinueWith(task =>
                 {
-                    item = oldHead.Value;
-                    return true;
-                }
-                spin.SpinOnce();
-            }
+                    ping.Dispose();
+                    Console.WriteLine($"Pinged {ipAddress}: {task.Result.Status}");
+                    return task.Result.Status;
+                });
         }
 
-        private class Node
+        private static Task CheckPort(IPAddress ipAddress, int port, int timeout = 3000)
         {
-            public readonly T Value;
-            public readonly Node Next;
-            public readonly int Quantity;
-            public Node(T value, Node next, int quantity)
-            {
-                Value = value;
-                Next = next;
-                Quantity = quantity;
-            }
+            var tcpClient = new TcpClient();
+            Console.WriteLine($"Checking {ipAddress}:{port}");
+            return tcpClient
+                .ConnectAsync(ipAddress, port, timeout)
+                .ContinueWith(task =>
+                {
+                    Console.WriteLine($@"Checked {ipAddress}:{port} - {task.Result}");
+                    tcpClient.Dispose();
+                });
         }
     }
 }
