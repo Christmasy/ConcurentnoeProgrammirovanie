@@ -9,42 +9,31 @@ namespace ContKor
 {
     public class TplScanner : IPScanner
     {
-        public Task Scan(IPAddress[] ipAddresses, int[] ports) =>
-            Task.WhenAll(ipAddresses
-                .Select(ipAddress => PingAddress(ipAddress)
-                    .ContinueWith(task =>
-                    {
-                        if (task.Result != IPStatus.Success) return;
-                        Task.WhenAll(ports.Select(port => CheckPort(ipAddress, port)))
-                            .ContinueWith(_ => { }, TaskContinuationOptions.AttachedToParent);
-                    }))
-            );
-
-        private static Task<IPStatus> PingAddress(IPAddress ipAddress, int timeout = 3000)
+        private static async Task ProcessIpAddressAsync(IPAddress ipAddress, int[] ports)
         {
-            var ping = new Ping();
+            var status = await PingAddressAsync(ipAddress);
+            if (status != IPStatus.Success) return; 
+            await Task.WhenAll(ports.Select(port => CheckPortAsync(ipAddress, port))); 
+        }
+        
+        public Task Scan(IPAddress[] ipAddresses, int[] ports) =>
+            Task.WhenAll(ipAddresses.Select(ipAddress => ProcessIpAddressAsync(ipAddress, ports)));
+        
+        private static async Task<IPStatus> PingAddressAsync(IPAddress ipAddress, int timeout = 3000)
+        {
+            using var ping = new Ping(); // dispose ping
             Console.WriteLine($"Pinging {ipAddress}");
-            return ping
-                .SendPingAsync(ipAddress, timeout)
-                .ContinueWith(task =>
-                {
-                    ping.Dispose();
-                    Console.WriteLine($"Pinged {ipAddress}: {task.Result.Status}");
-                    return task.Result.Status;
-                });
+            var result = await ping.SendPingAsync(ipAddress, timeout);
+            Console.WriteLine($"Pinged {ipAddress}: {result.Status}");
+            return result.Status;
         }
 
-        private static Task CheckPort(IPAddress ipAddress, int port, int timeout = 3000)
+        private static async Task CheckPortAsync(IPAddress ipAddress, int port, int timeout = 3000)
         {
-            var tcpClient = new TcpClient();
+            using var tcpClient = new TcpClient();
             Console.WriteLine($"Checking {ipAddress}:{port}");
-            return tcpClient
-                .ConnectAsync(ipAddress, port, timeout)
-                .ContinueWith(task =>
-                {
-                    Console.WriteLine($@"Checked {ipAddress}:{port} - {task.Result}");
-                    tcpClient.Dispose();
-                });
+            var result = await tcpClient.ConnectAsync(ipAddress, port, timeout);
+            Console.WriteLine($"Checked {ipAddress}:{port} - {result}");
         }
     }
 }
